@@ -41,7 +41,7 @@ export default class Client {
     this.httpClient = robot ? robot.http.bind(robot) : HttpClient.create
   }
 
-  public createTeam(teamName: string, userId: string, emailAddress: string) {
+  public createTeam(teamName: string, userId: string, auth: string) {
     return new Promise<ApiResponse>((resolve, reject) => {
       const body = JSON.stringify({
         data: {
@@ -60,7 +60,7 @@ export default class Client {
         },
       })
 
-      this.createClient('/teams', { auth: this.getAuth(emailAddress) })
+      this.createClient('/teams', { auth: this.getAuth(auth) })
         .post(body)((err, res) => {
           if (err) {
             return reject(err)
@@ -74,9 +74,9 @@ export default class Client {
     })
   }
 
-  public removeTeam(teamId: string, emailAddress: string) {
+  public removeTeam(teamId: string, auth: string) {
     return new Promise<ApiResponse>((resolve, reject) => {
-      this.createClient(`/teams/${teamId}`, { auth: this.getAuth(emailAddress) })
+      this.createClient(`/teams/${teamId}`, { auth: this.getAuth(auth) })
         .delete('')((err, res) => {
           if (err) {
             return reject(err)
@@ -90,7 +90,7 @@ export default class Client {
     })
   }
 
-  public createUser(userId: string, userName: string, emailAddress: string) {
+  public createUser(userId: string, userName: string, auth: string) {
     return new Promise<ApiResponse>((resolve, reject) => {
       const body = JSON.stringify({
         data: {
@@ -102,7 +102,7 @@ export default class Client {
         },
       })
 
-      this.createClient('/users', { auth: this.getAuth(emailAddress) })
+      this.createClient('/users', { auth: this.getAuth(auth) })
         .post(body)((err, res) => {
           if (err) {
             return reject(err)
@@ -180,7 +180,7 @@ export default class Client {
     })
   }
 
-  public removeTeamMember(teamId: string, userId: string, emailAddress: string) {
+  public removeTeamMember(teamId: string, userId: string, auth: string) {
     return new Promise<ApiResponse>((resolve, reject) => {
       const body = JSON.stringify({
         data: [{
@@ -189,7 +189,7 @@ export default class Client {
         }],
       })
 
-      this.createClient(`/teams/${encodeURIComponent(teamId)}/members`, { auth: this.getAuth(emailAddress) })
+      this.createClient(`/teams/${encodeURIComponent(teamId)}/members`, { auth: this.getAuth(auth) })
         .delete(body)((err, res) => {
           if (err) {
             return reject(err)
@@ -229,7 +229,7 @@ export default class Client {
     })
   }
 
-  public addUserToTeam(teamId: string, userId: string, emailAddress: string) {
+  public addUserToTeam(teamId: string, userId: string, auth: string) {
     return new Promise<ApiResponse>((resolve, reject) => {
       const body = JSON.stringify({
         data: [{
@@ -238,7 +238,7 @@ export default class Client {
         }],
       })
 
-      this.createClient(`/teams/${teamId}/members`, { auth: this.getAuth(emailAddress) })
+      this.createClient(`/teams/${teamId}/members`, { auth: this.getAuth(auth) })
         .post(body)((err, res) => {
           if (err) {
             return reject(err)
@@ -254,7 +254,7 @@ export default class Client {
     })
   }
 
-  public updateMotto(teamMotto: string, teamId: string, emailAddress: string) {
+  public updateMotto(teamMotto: string, teamId: string, auth: string) {
     return new Promise<ApiResponse>((resolve, reject) => {
       const body = JSON.stringify({
         data: {
@@ -266,7 +266,7 @@ export default class Client {
         },
       })
 
-      this.createClient(`/teams/${encodeURIComponent(teamId)}`, { auth: this.getAuth(emailAddress) })
+      this.createClient(`/teams/${encodeURIComponent(teamId)}`, { auth: this.getAuth(auth) })
         .patch(body)((err, res) => {
           if (err) {
             return reject(err)
@@ -280,8 +280,8 @@ export default class Client {
     })
   }
 
-  private getAuth(emailAddress: string) {
-    return `${emailAddress}:${this.hackbotPassword}`
+  private getAuth(auth: string) {
+    return `${auth}:${this.hackbotPassword}`
   }
 
   private createClient(pathAndQuery: string, opts?: HttpClient.ClientOptions) {

@@ -3,9 +3,9 @@ import { AugmentedRobot } from '../augmented_robot'
 export default (robot: AugmentedRobot) => {
 
   robot.respondAsync(/tell me about my team/i, async (response) => {
-    const userId = response.message.user.id
+    const user = robot.adapter.client.rtm.dataStore.getUserByName(response.message.user.name)
 
-    const res = await robot.client.getUser(userId)
+    const res = await robot.client.getUser(user.id)
     if ((!res.ok && res.statusCode === 404) || res.user.team.id === undefined) {
       return response.reply(`You're not in a team! :goberserk:`)
     }

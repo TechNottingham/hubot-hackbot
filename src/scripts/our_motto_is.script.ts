@@ -3,7 +3,7 @@ import { AugmentedRobot } from '../augmented_robot'
 export default (robot: AugmentedRobot) => {
 
   robot.respondAsync(/our motto is (.*)/i, async (response) => {
-    const user = robot.adapter.client.rtm.dataStore.getUserById(response.message.user.id)
+    const user = robot.adapter.client.rtm.dataStore.getUserByName(response.message.user.name)
     const motto = response.match[1]
 
     const getUserResponse = await robot.client.getUser(user.id)
@@ -12,9 +12,7 @@ export default (robot: AugmentedRobot) => {
       return response.reply(`You're not in a team! :goberserk:`)
     }
 
-    const emailAddress = user.profile.email
-
-    const updateMottoResponse = await robot.client.updateMotto(motto, getUserResponse.user.team.id, emailAddress)
+    const updateMottoResponse = await robot.client.updateMotto(motto, getUserResponse.user.team.id, user.id)
     if (updateMottoResponse.ok) {
       return response.reply(`So it is! As ${getUserResponse.user.team.name} say: ${motto}`)
     }

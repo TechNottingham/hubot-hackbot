@@ -2,6 +2,7 @@ import { expect } from 'chai'
 import * as sinon from 'sinon'
 import { RobotWithClient } from '../hackbot'
 import * as Helper from 'hubot-test-helper'
+import * as random from './random'
 
 describe('@hubot find teams like X', () => {
 
@@ -25,20 +26,22 @@ describe('@hubot find teams like X', () => {
     before(setUp)
     after(tearDown)
 
+    const { name: userName } = random.user()
     let findTeamsStub: sinon.SinonStub
 
     before(() => {
-      findTeamsStub = sinon.stub(robot.client, 'findTeams').returns(Promise.resolve({
-        ok: true,
-        teams: [
-          { name: 'Hack Hackers Hacking Hacks' },
-          { name: 'Hackers Hacking Hack Hacks' },
-          { name: 'Another Team' },
-          { name: 'b' },
-        ],
-      }))
+      findTeamsStub = sinon.stub(robot.client, 'findTeams')
+        .returns(Promise.resolve({
+          ok: true,
+          teams: [
+            { name: 'Hack Hackers Hacking Hacks' },
+            { name: 'Hackers Hacking Hack Hacks' },
+            { name: 'Another Team' },
+            { name: 'b' },
+          ],
+        }))
 
-      return room.user.say('paolo', '@hubot find teams like hacking hack')
+      return room.user.say(userName, '@hubot find teams like hacking hack')
     })
 
     it('should find teams matching the search', () => {
@@ -47,8 +50,8 @@ describe('@hubot find teams like X', () => {
 
     it('should tell the user which teams were found', () => {
       expect(room.messages).to.eql([
-        ['paolo', '@hubot find teams like hacking hack'],
-        ['hubot', `@paolo Found 4 teams; here's a few: Hack Hackers Hacking Hacks, Hackers Hacking Hack Hacks, Another Team`],
+        [userName, '@hubot find teams like hacking hack'],
+        ['hubot', `@${userName} Found 4 teams; here's a few: Hack Hackers Hacking Hacks, Hackers Hacking Hack Hacks, Another Team`],
       ])
     })
   })
@@ -58,19 +61,21 @@ describe('@hubot find teams like X', () => {
     before(setUp)
     after(tearDown)
 
+    const { name: userName } = random.user()
+
     before(() => {
       sinon.stub(robot.client, 'findTeams').returns(Promise.resolve({
         ok: true,
         teams: [],
       }))
 
-      return room.user.say('paolo', '@hubot find teams like hacking hack')
+      return room.user.say(userName, '@hubot find teams like hacking hack')
     })
 
     it('should tell the user that no teams were found', () => {
       expect(room.messages).to.eql([
-        ['paolo', '@hubot find teams like hacking hack'],
-        ['hubot', '@paolo None found.'],
+        [userName, '@hubot find teams like hacking hack'],
+        ['hubot', `@${userName} None found.`],
       ])
     })
   })

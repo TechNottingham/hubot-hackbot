@@ -5,6 +5,7 @@ import * as sinon from 'sinon'
 import { RobotWithClient } from '../hackbot'
 import * as Helper from 'hubot-test-helper'
 import Config from '../config'
+import * as random from './random'
 
 describe('Error Handler', () => {
 
@@ -28,7 +29,7 @@ describe('Error Handler', () => {
     before(setUp)
     after(tearDown)
 
-    let userName: string
+    const { name: userName } = random.user()
     let error: Error
     let errorChannel: string
     let response: Response
@@ -37,9 +38,8 @@ describe('Error Handler', () => {
     let sendSpy: sinon.SinonSpy
 
     before(() => {
-      userName = 'someUser'
       room.user.name = userName
-      error = new Error('catches an error with Slack adapter')
+      error = new Error('[test] catches an error with Slack adapter')
       errorChannel = '#my_error_channel'
       response = new Response(room.robot, new Message(room.user), [])
 
@@ -93,7 +93,7 @@ Error: ${error.stack}
     before(setUp)
     after(tearDown)
 
-    let userName: string
+    const { name: userName } = random.user()
     let error: Error
     let errorChannel: string
     let expectedMessage: ICustomMessageData
@@ -101,9 +101,8 @@ Error: ${error.stack}
     let sendSpy: sinon.SinonSpy
 
     before(() => {
-      userName = 'someUser'
       room.user.name = userName
-      error = new Error('catches an error with Slack adapter')
+      error = new Error('[test] catches an error with Slack adapter')
       errorChannel = '#my_error_channel'
 
       Config.HACKBOT_ERROR_CHANNEL.value = errorChannel

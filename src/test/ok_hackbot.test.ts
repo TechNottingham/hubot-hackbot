@@ -4,6 +4,7 @@ import { RobotWithClient } from '../hackbot'
 import { SlackBotClient } from 'hubot-slack'
 import { MemoryDataStore } from '@slack/client'
 import * as Helper from 'hubot-test-helper'
+import * as random from './random'
 
 describe('OK hackbot', () => {
 
@@ -30,7 +31,7 @@ describe('OK hackbot', () => {
     before(setUp)
     after(tearDown)
 
-    let userName: string
+    const { name: userName } = random.user()
     let brainRemoveStub: sinon.SinonStub
     let brainSetStub: sinon.SinonStub
     let brainGetStub: sinon.SinonStub
@@ -38,8 +39,6 @@ describe('OK hackbot', () => {
     let receiveSpy: sinon.SinonSpy
 
     before(async () => {
-      userName = 'bob'
-
       epochBefore = new Date().getTime() / 1000
       const epoch = (new Date().getTime() / 1000) - 28
 
@@ -100,14 +99,12 @@ describe('OK hackbot', () => {
     before(setUp)
     after(tearDown)
 
-    let userName: string
+    const { name: userName } = random.user()
     let brainSetStub: sinon.SinonStub
     let brainGetStub: sinon.SinonStub
     let receiveSpy: sinon.SinonSpy
 
     before(async () => {
-      userName = 'bob'
-
       const epoch = (new Date().getTime() / 1000) - 31
 
       brainSetStub = sinon.stub(robot.brain, 'set')

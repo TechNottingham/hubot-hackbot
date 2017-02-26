@@ -4,6 +4,7 @@ import { RobotWithClient } from '../hackbot'
 import { SlackBotClient } from 'hubot-slack'
 import { MemoryDataStore, User } from '@slack/client'
 import * as Helper from 'hubot-test-helper'
+import * as random from './random'
 
 describe('@hubot tell me about @username', () => {
 
@@ -30,29 +31,17 @@ describe('@hubot tell me about @username', () => {
     before(setUp)
     after(tearDown)
 
-    let myUsername: string
-    let userId: string
-    let username: string
-    let teamName: string
-    let motto: string
+    const { name: userName } = random.user()
+    const { id: queryUserId, name: queryUserName } = random.user()
+    const { name: teamName } = random.team()
+    const motto = random.motto()
     let getUserStub: sinon.SinonStub
 
     before(() => {
-      myUsername = 'benny'
-      userId = 'pig'
-      username = 'PigBodine'
-      teamName = 'Whole Sick Crew'
-      motto = 'A-and...'
-
-      sinon
-        .stub(dataStore, 'getUserByName')
-        .withArgs(username)
-        .returns({ id: userId, name: username } as User)
-
       getUserStub = sinon.stub(robot.client, 'getUser').returns(Promise.resolve({
         ok: true,
         user: {
-          id: userId,
+          id: queryUserId,
           team: {
             id: 'some random id',
             name: teamName,
@@ -62,18 +51,22 @@ describe('@hubot tell me about @username', () => {
         },
       }))
 
-      return room.user.say(myUsername, `@hubot tell me about @${username}`)
+      sinon.stub(dataStore, 'getUserByName')
+        .withArgs(queryUserName)
+        .returns({ id: queryUserId, name: queryUserName } as User)
+
+      return room.user.say(userName, `@hubot tell me about @${queryUserName}`)
     })
 
     it('should fetch the user', () => {
-      expect(getUserStub).to.have.been.calledWith(userId)
+      expect(getUserStub).to.have.been.calledWith(queryUserId)
     })
 
     it('should tell the user the user information', () => {
       expect(room.messages).to.eql([
-        [myUsername, `@hubot tell me about @${username}`],
+        [userName, `@hubot tell me about @${queryUserName}`],
         ['hubot',
-         `@${myUsername} "${username}" is a member of team: ${teamName},\r\n` +
+         `@${userName} "${queryUserName}" is a member of team: ${teamName},\r\n` +
          `They say: ${motto}`,
         ],
       ])
@@ -85,48 +78,38 @@ describe('@hubot tell me about @username', () => {
     before(setUp)
     after(tearDown)
 
-    let myUsername: string
-    let userId: string
-    let username: string
-    let teamName: string
-    let getUserStub: sinon.SinonStub
+    const { name: userName } = random.user()
+    const { id: queryUserId, name: queryUserName } = random.user()
+    const { name: teamName } = random.team()
 
     before(() => {
-      myUsername = 'benny'
-      userId = 'pig'
-      username = 'PigBodine'
-      teamName = 'Whole Sick Crew'
-
-      sinon
-        .stub(dataStore, 'getUserByName')
-        .withArgs(username)
-        .returns({ id: userId, name: username } as User)
-
-      getUserStub = sinon.stub(robot.client, 'getUser').returns(Promise.resolve({
-        ok: true,
-        user: {
-          id: userId,
-          team: {
-            id: 'some random id',
-            name: teamName,
-            motto: null,
-            members: [],
+      sinon.stub(robot.client, 'getUser')
+        .withArgs(queryUserId)
+        .returns(Promise.resolve({
+          ok: true,
+          user: {
+            id: queryUserId,
+            team: {
+              id: 'some random id',
+              name: teamName,
+              motto: null,
+              members: [],
+            },
           },
-        },
-      }))
+        }))
 
-      return room.user.say(myUsername, `@hubot tell me about @${username}`)
-    })
+      sinon.stub(dataStore, 'getUserByName')
+        .withArgs(queryUserName)
+        .returns({ id: queryUserId, name: queryUserName } as User)
 
-    it('should fetch the user', () => {
-      expect(getUserStub).to.have.been.calledWith(userId)
+      return room.user.say(userName, `@hubot tell me about @${queryUserName}`)
     })
 
     it('should tell the user the user information', () => {
       expect(room.messages).to.eql([
-        [myUsername, `@hubot tell me about @${username}`],
+        [userName, `@hubot tell me about @${queryUserName}`],
         ['hubot',
-         `@${myUsername} "${username}" is a member of team: ${teamName},\r\n` +
+         `@${userName} "${queryUserName}" is a member of team: ${teamName},\r\n` +
          `They don't yet have a motto!`,
         ],
       ])
@@ -138,41 +121,32 @@ describe('@hubot tell me about @username', () => {
     before(setUp)
     after(tearDown)
 
-    let myUsername: string
-    let userId: string
-    let username: string
-    let getUserStub: sinon.SinonStub
+    const { name: userName } = random.user()
+    const { id: queryUserId, name: queryUserName } = random.user()
 
     before(() => {
-      myUsername = 'benny'
-      userId = 'pig'
-      username = 'PigBodine'
+      sinon.stub(robot.client, 'getUser')
+        .withArgs(queryUserId)
+        .returns(Promise.resolve({
+          ok: true,
+          user: {
+            id: queryUserId,
+            team: {},
+          },
+        }))
 
-      sinon
-        .stub(dataStore, 'getUserByName')
-        .withArgs(username)
-        .returns({ id: userId, name: username } as User)
+      sinon.stub(dataStore, 'getUserByName')
+        .withArgs(queryUserName)
+        .returns({ id: queryUserId, name: queryUserName } as User)
 
-      getUserStub = sinon.stub(robot.client, 'getUser').returns(Promise.resolve({
-        ok: true,
-        user: {
-          id: userId,
-          team: {},
-        },
-      }))
-
-      return room.user.say(myUsername, `@hubot tell me about @${username}`)
-    })
-
-    it('should fetch the user', () => {
-      expect(getUserStub).to.have.been.calledWith(userId)
+      return room.user.say(userName, `@hubot tell me about @${queryUserName}`)
     })
 
     it('should tell the user the user information', () => {
       expect(room.messages).to.eql([
-        [myUsername, `@hubot tell me about @${username}`],
+        [userName, `@hubot tell me about @${queryUserName}`],
         ['hubot',
-         `@${myUsername} "${username}" is not yet a member of a team!`,
+         `@${userName} "${queryUserName}" is not yet a member of a team!`,
         ],
       ])
     })
@@ -183,38 +157,29 @@ describe('@hubot tell me about @username', () => {
     before(setUp)
     after(tearDown)
 
-    let myUsername: string
-    let userId: string
-    let username: string
-    let getUserStub: sinon.SinonStub
+    const { name: userName } = random.user()
+    const { id: queryUserId, name: queryUserName } = random.user()
 
     before(() => {
-      myUsername = 'benny'
-      userId = 'pig'
-      username = 'PigBodine'
+      sinon.stub(robot.client, 'getUser')
+        .withArgs(queryUserId)
+        .returns(Promise.resolve({
+          ok: false,
+          statusCode: 404,
+        }))
 
-      sinon
-        .stub(dataStore, 'getUserByName')
-        .withArgs(username)
-        .returns({ id: userId, name: username } as User)
+      sinon.stub(dataStore, 'getUserByName')
+        .withArgs(queryUserName)
+        .returns({ id: queryUserId, name: queryUserName } as User)
 
-      getUserStub = sinon.stub(robot.client, 'getUser').returns(Promise.resolve({
-        ok: false,
-        statusCode: 404,
-      }))
-
-      return room.user.say(myUsername, `@hubot tell me about @${username}`)
-    })
-
-    it('should fetch the user', () => {
-      expect(getUserStub).to.have.been.calledWith(userId)
+      return room.user.say(userName, `@hubot tell me about @${queryUserName}`)
     })
 
     it('should tell the user that no such user exists', () => {
       expect(room.messages).to.eql([
-        [myUsername, `@hubot tell me about @${username}`],
+        [userName, `@hubot tell me about @${queryUserName}`],
         ['hubot',
-         `@${myUsername} "${username}" is not a user I recognise!`,
+         `@${userName} "${queryUserName}" is not a user I recognise!`,
         ],
       ])
     })
@@ -225,33 +190,22 @@ describe('@hubot tell me about @username', () => {
     before(setUp)
     after(tearDown)
 
-    let myUsername: string
-    let username: string
-    let getUserStub: sinon.SinonStub
+    const { name: userName } = random.user()
+    const { name: queryUserName } = random.user()
 
     before(() => {
-      myUsername = 'benny'
-      username = 'PigBodine'
-
-      getUserStub = sinon.stub(robot.client, 'getUser')
-
-      sinon
-        .stub(dataStore, 'getUserByName')
-        .withArgs(username)
+      sinon.stub(dataStore, 'getUserByName')
+        .withArgs(queryUserName)
         .returns(undefined)
 
-      return room.user.say(myUsername, `@hubot tell me about @${username}`)
-    })
-
-    it('should not fetch the user', () => {
-      expect(getUserStub).to.not.have.been.calledWith()
+      return room.user.say(userName, `@hubot tell me about @${queryUserName}`)
     })
 
     it('should tell the user that no such user exists', () => {
       expect(room.messages).to.eql([
-        [myUsername, `@hubot tell me about @${username}`],
+        [userName, `@hubot tell me about @${queryUserName}`],
         ['hubot',
-         `@${myUsername} "${username}" is not a user I recognise!`,
+         `@${userName} "${queryUserName}" is not a user I recognise!`,
         ],
       ])
     })
@@ -262,30 +216,25 @@ describe('@hubot tell me about @username', () => {
     before(setUp)
     after(tearDown)
 
-    let myUsername: string
-    let userId: string
-    let username: string
+    const { name: userName } = random.user()
+    const { id: queryUserId, name: queryUserName } = random.user()
 
     before(() => {
-      myUsername = 'benny'
-      userId = 'pig'
-      username = 'PigBodine'
-      const error = new Error('problem happened')
+      const error = new Error('[test] problem happened')
 
       sinon.stub(robot, 'emit')
       sinon.stub(robot.client, 'getUser').returns(Promise.reject(error))
 
-      sinon
-        .stub(dataStore, 'getUserByName')
-        .withArgs(username)
-        .returns({ id: userId, name: username } as User)
+      sinon.stub(dataStore, 'getUserByName')
+        .withArgs(queryUserName)
+        .returns({ id: queryUserId, name: queryUserName } as User)
 
-      return room.user.say(myUsername, `@hubot tell me about @${username}`)
+      return room.user.say(userName, `@hubot tell me about @${queryUserName}`)
     })
 
     it('should not respond', () => {
       expect(room.messages).to.eql([
-        [myUsername, `@hubot tell me about @${username}`],
+        [userName, `@hubot tell me about @${queryUserName}`],
       ])
     })
   })

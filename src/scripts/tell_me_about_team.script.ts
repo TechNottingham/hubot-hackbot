@@ -18,7 +18,9 @@ export default (robot: AugmentedRobot) => {
       return response.reply(`"${res.team.name}" is an empty team.`)
     }
 
-    if (res.team.members.length === 1 && res.team.members[0].id === response.message.user.id) {
+    const user = robot.adapter.client.rtm.dataStore.getUserByName(response.message.user.name)
+
+    if (res.team.members.length === 1 && res.team.members[0].id === user.id) {
       const motto = res.team.motto === null ? `and you have not yet set your motto!` : `and your motto is: ${res.team.motto}`
       return response.reply(`You are the only member of "${res.team.name}" ${motto}`)
     }

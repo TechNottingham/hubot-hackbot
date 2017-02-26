@@ -4,6 +4,7 @@ import { RobotWithClient } from '../hackbot'
 import { SlackBotClient } from 'hubot-slack'
 import { MemoryDataStore, User } from '@slack/client'
 import * as Helper from 'hubot-test-helper'
+import * as random from './random'
 
 describe('@hubot leave my team', () => {
 
@@ -30,47 +31,40 @@ describe('@hubot leave my team', () => {
     before(setUp)
     after(tearDown)
 
-    let userName: string
-    let userEmail: string
-    let existingTeamId: string
-    let existingTeamName: string
-    let getUserStub: sinon.SinonStub
+    const { id: userId, name: userName } = random.user()
+    const { id: existingTeamId, name: existingTeamName } = random.team()
     let removeTeamMemberStub: sinon.SinonStub
     let removeTeamStub: sinon.SinonStub
 
     before(() => {
-      userName = 'micah'
-      userEmail = 'micah.micah~micah'
-      existingTeamId = 'ocean-mongrels'
-      existingTeamName = 'Ocean Mongrels'
-
-      getUserStub = sinon.stub(robot.client, 'getUser').returns(Promise.resolve({
-        ok: true,
-        user: {
-          team: {
-            id: existingTeamId,
-            name: existingTeamName,
+      sinon.stub(robot.client, 'getUser')
+        .withArgs(userId)
+        .returns(Promise.resolve({
+          ok: true,
+          user: {
+            team: {
+              id: existingTeamId,
+              name: existingTeamName,
+            },
           },
-        },
-      }))
+        }))
 
       removeTeamMemberStub = sinon.stub(robot.client, 'removeTeamMember').returns(Promise.resolve({ ok: true }))
-
       removeTeamStub = sinon.stub(robot.client, 'removeTeam').returns(Promise.resolve({ ok: false }))
 
-      sinon.stub(dataStore, 'getUserById')
+      sinon.stub(dataStore, 'getUserByName')
         .withArgs(userName)
-        .returns({ id: userName, profile: { email: userEmail } } as User)
+        .returns({ id: userId } as User)
 
       return room.user.say(userName, '@hubot leave my team')
     })
 
-    it('should get the user', () => {
-      expect(getUserStub).to.have.been.calledWith(userName)
+    it('should remove the user from the team', () => {
+      expect(removeTeamMemberStub).to.have.been.calledWith(existingTeamId, userId, userId)
     })
 
-    it('should update the team, excluding the current user in the member list', () => {
-      expect(removeTeamMemberStub).to.have.been.calledWith(existingTeamId, userName, userEmail)
+    it('should attempt to remove the team', () => {
+      expect(removeTeamStub).to.have.been.calledWith(existingTeamId, userId)
     })
 
     it('should tell the user that they have left the team', () => {
@@ -86,51 +80,41 @@ describe('@hubot leave my team', () => {
     before(setUp)
     after(tearDown)
 
-    let userName: string
-    let userEmail: string
-    let existingTeamId: string
-    let existingTeamName: string
+    const { id: userId, name: userName } = random.user()
+    const { id: existingTeamId, name: existingTeamName } = random.team()
     let getUserStub: sinon.SinonStub
     let removeTeamMemberStub: sinon.SinonStub
     let removeTeamStub: sinon.SinonStub
 
     before(() => {
-      userName = 'micah'
-      userEmail = 'micah.micah~micah'
-      existingTeamId = 'ocean-mongrels'
-      existingTeamName = 'Ocean Mongrels'
-
-      getUserStub = sinon.stub(robot.client, 'getUser').returns(Promise.resolve({
-        ok: true,
-        user: {
-          team: {
-            id: existingTeamId,
-            name: existingTeamName,
+      getUserStub = sinon.stub(robot.client, 'getUser')
+        .withArgs(userId)
+        .returns(Promise.resolve({
+          ok: true,
+          user: {
+            team: {
+              id: existingTeamId,
+              name: existingTeamName,
+            },
           },
-        },
-      }))
+        }))
 
       removeTeamMemberStub = sinon.stub(robot.client, 'removeTeamMember').returns(Promise.resolve({ ok: true }))
-
       removeTeamStub = sinon.stub(robot.client, 'removeTeam').returns(Promise.resolve({ ok: true }))
 
-      sinon.stub(dataStore, 'getUserById')
+      sinon.stub(dataStore, 'getUserByName')
         .withArgs(userName)
-        .returns({ id: userName, profile: { email: userEmail } } as User)
+        .returns({ id: userId } as User)
 
       return room.user.say(userName, '@hubot leave my team')
     })
 
-    it('should get the user', () => {
-      expect(getUserStub).to.have.been.calledWith(userName)
+    it('should remove the user from the team', () => {
+      expect(removeTeamMemberStub).to.have.been.calledWith(existingTeamId, userId, userId)
     })
 
-    it('should update the team, excluding the current user in the member list', () => {
-      expect(removeTeamMemberStub).to.have.been.calledWith(existingTeamId, userName, userEmail)
-    })
-
-    it('should delete the team', () => {
-      expect(removeTeamStub).to.have.been.calledWith(existingTeamId)
+    it('should remove the team', () => {
+      expect(removeTeamStub).to.have.been.calledWith(existingTeamId, userId)
     })
 
     it('should tell the user that they have left the team and that the team has been deleted', () => {
@@ -146,37 +130,30 @@ describe('@hubot leave my team', () => {
     before(setUp)
     after(tearDown)
 
-    let userName: string
-    let userEmail: string
-    let existingTeamId: string
-    let existingTeamName: string
-    let getUserStub: sinon.SinonStub
-    let removeTeamMemberStub: sinon.SinonStub
+    const { id: userId, name: userName } = random.user()
+    const { id: existingTeamId, name: existingTeamName } = random.team()
 
     before(() => {
-      userName = 'micah'
-      userEmail = 'micah.micah~micah'
-      existingTeamId = 'ocean-mongrels'
-      existingTeamName = 'Ocean Mongrels'
-
-      getUserStub = sinon.stub(robot.client, 'getUser').returns(Promise.resolve({
-        ok: true,
-        user: {
-          team: {
-            id: existingTeamId,
-            name: existingTeamName,
+      sinon.stub(robot.client, 'getUser')
+        .withArgs(userId)
+        .returns(Promise.resolve({
+          ok: true,
+          user: {
+            team: {
+              id: existingTeamId,
+              name: existingTeamName,
+            },
           },
-        },
-      }))
+        }))
 
-      removeTeamMemberStub = sinon.stub(robot.client, 'removeTeamMember').returns(Promise.resolve({
+      sinon.stub(robot.client, 'removeTeamMember').returns(Promise.resolve({
         ok: false,
         statusCode: 403,
       }))
 
-      sinon.stub(dataStore, 'getUserById')
+      sinon.stub(dataStore, 'getUserByName')
         .withArgs(userName)
-        .returns({ id: userName, profile: { email: userEmail } } as User)
+        .returns({ id: userId } as User)
 
       return room.user.say(userName, '@hubot leave my team')
     })
@@ -194,30 +171,25 @@ describe('@hubot leave my team', () => {
     before(setUp)
     after(tearDown)
 
-    let userName: string
-    let getUserStub: sinon.SinonStub
+    const { id: userId, name: userName } = random.user()
 
     before(() => {
-      userName = 'sarah'
-
-      getUserStub = sinon.stub(robot.client, 'getUser').returns(Promise.resolve({
-        ok: true,
-        user: {
-          team: {
-            id: undefined,
+      sinon.stub(robot.client, 'getUser')
+        .withArgs(userId)
+        .returns(Promise.resolve({
+          ok: true,
+          user: {
+            team: {
+              id: undefined,
+            },
           },
-        },
-      }))
+        }))
 
-      sinon.stub(dataStore, 'getUserById')
+      sinon.stub(dataStore, 'getUserByName')
         .withArgs(userName)
-        .returns({ id: userName } as User)
+        .returns({ id: userId } as User)
 
       return room.user.say(userName, '@hubot leave my team')
-    })
-
-    it('should get the user', () => {
-      expect(getUserStub).to.have.been.calledWith(userName)
     })
 
     it('should tell the user that they are not in a team', () => {
@@ -233,26 +205,21 @@ describe('@hubot leave my team', () => {
     before(setUp)
     after(tearDown)
 
-    let userName: string
-    let getUserStub: sinon.SinonStub
+    const { id: userId, name: userName } = random.user()
 
     before(() => {
-      userName = 'sarah'
+      sinon.stub(robot.client, 'getUser')
+        .withArgs(userId)
+        .returns(Promise.resolve({
+          ok: false,
+          statusCode: 404,
+        }))
 
-      getUserStub = sinon.stub(robot.client, 'getUser').returns(Promise.resolve({
-        ok: false,
-        statusCode: 404,
-      }))
-
-      sinon.stub(dataStore, 'getUserById')
+      sinon.stub(dataStore, 'getUserByName')
         .withArgs(userName)
-        .returns({ id: userName, profile: { email: 'sdfsfdsfsdf' } } as User)
+        .returns({ id: userId } as User)
 
       return room.user.say(userName, '@hubot leave my team')
-    })
-
-    it('should get the user', () => {
-      expect(getUserStub).to.have.been.calledWith(userName)
     })
 
     it('should tell the user that they are not in a team', () => {
@@ -268,18 +235,17 @@ describe('@hubot leave my team', () => {
     before(setUp)
     after(tearDown)
 
-    let userName: string
+    const { id: userId, name: userName } = random.user()
 
     before(() => {
-      userName = 'sarah'
-      const error = new Error('when getUser fails')
+      const error = new Error('[test] when getUser fails')
 
       sinon.stub(robot, 'emit')
-      sinon.stub(robot.client, 'getUser').returns(Promise.reject(error))
+      sinon.stub(robot.client, 'getUser').withArgs(userId).returns(Promise.reject(error))
 
-      sinon.stub(dataStore, 'getUserById')
+      sinon.stub(dataStore, 'getUserByName')
         .withArgs(userName)
-        .returns({ id: userName } as User)
+        .returns({ id: userId } as User)
 
       return room.user.say(userName, '@hubot leave my team')
     })
@@ -296,25 +262,26 @@ describe('@hubot leave my team', () => {
     before(setUp)
     after(tearDown)
 
-    let userName: string
+    const { id: userId, name: userName } = random.user()
 
     before(() => {
-      userName = 'sarah'
-      const error = new Error('when removeTeamMember fails')
+      const error = new Error('[test] when removeTeamMember fails')
 
       sinon.stub(robot, 'emit')
-      sinon.stub(robot.client, 'getUser').returns(Promise.resolve({
-        ok: true,
-        user: {
-          team: { id: 'teamid' },
-        },
-      }))
+      sinon.stub(robot.client, 'getUser')
+        .withArgs(userId)
+        .returns(Promise.resolve({
+          ok: true,
+          user: {
+            team: { id: 'teamid' },
+          },
+        }))
 
       sinon.stub(robot.client, 'removeTeamMember').returns(Promise.reject(error))
 
-      sinon.stub(dataStore, 'getUserById')
+      sinon.stub(dataStore, 'getUserByName')
         .withArgs(userName)
-        .returns({ id: userName, profile: { email: 'sdfsfdsfsdf' } } as User)
+        .returns({ id: userId } as User)
 
       return room.user.say(userName, '@hubot leave my team')
     })

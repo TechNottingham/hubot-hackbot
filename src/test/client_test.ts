@@ -115,9 +115,9 @@ describe('Hack24 API Client', () => {
 
         teamName = 'Pineapple Express'
         userId = 'U12345'
-        const emailAddress = 'someguy.com'
+        const auth = 'someguy.com'
 
-        expectedAuth = `Basic ${new Buffer(`${emailAddress}:${pass}`).toString('base64')}`
+        expectedAuth = `Basic ${new Buffer(`${auth}:${pass}`).toString('base64')}`
 
         api.post('/teams', apiJsonParser, (req: RequestWithBody, res: express.Response) => {
           contentType = req.headers['content-type']
@@ -130,7 +130,7 @@ describe('Hack24 API Client', () => {
         const client = new Client('http://localhost:12345', pass)
 
         server = api.listen(12345, () => {
-          client.createTeam(teamName, userId, emailAddress)
+          client.createTeam(teamName, userId, auth)
             .then((res) => {
               response = res
               done()
@@ -260,12 +260,12 @@ describe('Hack24 API Client', () => {
 
       before((done) => {
         const pass = 'sky'
-        const emailAddress = 'john@example.com'
+        const auth = 'john@example.com'
 
         const api = express()
 
         teamId = 'whatever'
-        expectedAuth = `Basic ${new Buffer(`${emailAddress}:${pass}`).toString('base64')}`
+        expectedAuth = `Basic ${new Buffer(`${auth}:${pass}`).toString('base64')}`
 
         api.delete(`/teams/${teamId}`, apiJsonParser, (req: RequestWithBody, res: express.Response) => {
           authorization = req.headers['authorization']
@@ -275,7 +275,7 @@ describe('Hack24 API Client', () => {
         const client = new Client('http://localhost:12345', pass)
 
         server = api.listen(12345, () => {
-          client.removeTeam(teamId, emailAddress)
+          client.removeTeam(teamId, auth)
             .then((res) => {
               result = res
               done()
@@ -830,9 +830,9 @@ describe('Hack24 API Client', () => {
 
         userId = 'U12345'
         userName = 'Pineapple Express'
-        const emailAddress = 'lkjasdkljasdgfhjdgf.daskjd'
+        const auth = 'lkjasdkljasdgfhjdgf.daskjd'
 
-        expectedAuth = `Basic ${new Buffer(`${emailAddress}:${pass}`).toString('base64')}`
+        expectedAuth = `Basic ${new Buffer(`${auth}:${pass}`).toString('base64')}`
 
         api.post('/users', apiJsonParser, (req: RequestWithBody, res: express.Response) => {
           contentType = req.headers['content-type']
@@ -845,7 +845,7 @@ describe('Hack24 API Client', () => {
         const client = new Client('http://localhost:12345', pass)
 
         server = api.listen(12345, () => {
-          client.createUser(userId, userName, emailAddress)
+          client.createUser(userId, userName, auth)
             .then((res) => {
               result = res
               done()
@@ -984,9 +984,9 @@ describe('Hack24 API Client', () => {
 
         teamId = 'swan-song'
         userId = 'U12345'
-        const emailAddress = 'asdasasd0-9098'
+        const auth = 'asdasasd0-9098'
 
-        expectedAuth = `Basic ${new Buffer(`${emailAddress}:${pass}`).toString('base64')}`
+        expectedAuth = `Basic ${new Buffer(`${auth}:${pass}`).toString('base64')}`
 
         api.delete(`/teams/${teamId}/members`, apiJsonParser, (req: RequestWithBody, res: express.Response) => {
           contentType = req.headers['content-type']
@@ -999,7 +999,7 @@ describe('Hack24 API Client', () => {
         const client = new Client('http://localhost:12345', pass)
 
         server = api.listen(12345, () => {
-          client.removeTeamMember(teamId, userId, emailAddress)
+          client.removeTeamMember(teamId, userId, auth)
             .then((res) => {
               result = res
               done()
@@ -1222,9 +1222,9 @@ describe('Hack24 API Client', () => {
         userId = 'U12345'
         userName = 'Pineapple Dicxpress'
         teamId = 'fruity'
-        const emailAddress = 'lkjasdkljasdgfhjdgf.daskjd'
+        const auth = 'lkjasdkljasdgfhjdgf.daskjd'
 
-        expectedAuth = `Basic ${new Buffer(`${emailAddress}:${pass}`).toString('base64')}`
+        expectedAuth = `Basic ${new Buffer(`${auth}:${pass}`).toString('base64')}`
 
         api.post('/teams/:teamId/members', apiJsonParser, (req: RequestWithBody, res: express.Response) => {
           contentType = req.headers['content-type']
@@ -1238,7 +1238,7 @@ describe('Hack24 API Client', () => {
         const client = new Client('http://localhost:12345', pass)
 
         server = api.listen(12345, () => {
-          client.addUserToTeam(teamId, userId, emailAddress)
+          client.addUserToTeam(teamId, userId, auth)
             .then((res) => {
               result = res
               done()
@@ -1296,7 +1296,7 @@ describe('Hack24 API Client', () => {
         const client = new Client('http://localhost:12345', 'adsa')
 
         server = api.listen(12345, () => {
-          client.addUserToTeam('some team', 'some user', 'some email')
+          client.addUserToTeam('some team', 'some user', 'some auth')
             .then(() => {
               done(new Error('Promise resolved'))
             })
@@ -1339,9 +1339,9 @@ describe('Hack24 API Client', () => {
 
         motto = 'No TV and no beer make Homer something something'
         teamId = 'duff'
-        const emailAddress = 'lkjasdkljasdgfhjdgf.daskjd'
+        const auth = 'lkjasdkljasdgfhjdgf.daskjd'
 
-        expectedAuth = `Basic ${new Buffer(`${emailAddress}:${pass}`).toString('base64')}`
+        expectedAuth = `Basic ${new Buffer(`${auth}:${pass}`).toString('base64')}`
 
         api.patch('/teams/:teamId', apiJsonParser, (req: RequestWithBody, res: express.Response) => {
           contentType = req.headers['content-type']
@@ -1355,7 +1355,7 @@ describe('Hack24 API Client', () => {
         const client = new Client('http://localhost:12345', pass)
 
         server = api.listen(12345, () => {
-          client.updateMotto(motto, teamId, emailAddress)
+          client.updateMotto(motto, teamId, auth)
             .then((res) => {
               result = res
               done()
@@ -1450,7 +1450,7 @@ describe('Hack24 API Client', () => {
         const client = new Client('http://localhost:12345', 'adsa')
 
         server = api.listen(12345, () => {
-          client.updateMotto('some motto', 'some team id', 'some email address')
+          client.updateMotto('some motto', 'some team id', 'some auth')
             .then(() => {
               done(new Error('Promise resolved'))
             })

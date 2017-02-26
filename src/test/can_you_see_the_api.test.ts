@@ -2,6 +2,7 @@ import { expect } from 'chai'
 import * as sinon from 'sinon'
 import { RobotWithClient } from '../hackbot'
 import * as Helper from 'hubot-test-helper'
+import * as random from './random'
 
 describe('Can you see the API?', () => {
 
@@ -25,17 +26,19 @@ describe('Can you see the API?', () => {
     before(setUp)
     after(tearDown)
 
+    const { name: userName } = random.user()
+
     before(() => {
       sinon.stub(robot.client, 'checkApi').returns(Promise.resolve({ ok: true }))
 
-      return room.user.say('bob', '@hubot can you see the api?')
+      return room.user.say(userName, '@hubot can you see the api?')
     })
 
     it('should reply to the user that the API is available', () => {
       expect(room.messages).to.eql([
-        ['bob', '@hubot can you see the api?'],
-        ['hubot', `@bob I'll have a quick look for you...`],
-        ['hubot', '@bob I see her!'],
+        [userName, '@hubot can you see the api?'],
+        ['hubot', `@${userName} I'll have a quick look for you...`],
+        ['hubot', `@${userName} I see her!`],
       ])
     })
   })
@@ -45,17 +48,20 @@ describe('Can you see the API?', () => {
     before(setUp)
     after(tearDown)
 
-    before(() => {
-      sinon.stub(robot.client, 'checkApi').returns(Promise.resolve({ ok: false, statusCode: 99 }))
+    const { name: userName } = random.user()
+    const statusCode = 99
 
-      return room.user.say('bob', '@hubot can you see the api?')
+    before(() => {
+      sinon.stub(robot.client, 'checkApi').returns(Promise.resolve({ ok: false, statusCode }))
+
+      return room.user.say(userName, '@hubot can you see the api?')
     })
 
     it('should reply to the user that the API cannot be seen', () => {
       expect(room.messages).to.eql([
-        ['bob', '@hubot can you see the api?'],
-        ['hubot', `@bob I'll have a quick look for you...`],
-        ['hubot', `@bob I'm sorry, there appears to be a problem; something about "99"`],
+        [userName, '@hubot can you see the api?'],
+        ['hubot', `@${userName} I'll have a quick look for you...`],
+        ['hubot', `@${userName} I'm sorry, there appears to be a problem; something about "${statusCode}"`],
       ])
     })
   })
@@ -65,19 +71,21 @@ describe('Can you see the API?', () => {
     before(setUp)
     after(tearDown)
 
+    const { name: userName } = random.user()
+
     before(() => {
-      const error = new Error('unable to see the API because of a http error')
+      const error = new Error('[test] unable to see the API because of a http error')
 
       sinon.stub(robot, 'emit')
       sinon.stub(robot.client, 'checkApi').returns(Promise.reject(error))
 
-      return room.user.say('bob', '@hubot can you see the api?')
+      return room.user.say(userName, '@hubot can you see the api?')
     })
 
     it('should not report the error', () => {
       expect(room.messages).to.eql([
-        ['bob', '@hubot can you see the api?'],
-        ['hubot', `@bob I'll have a quick look for you...`],
+        [userName, '@hubot can you see the api?'],
+        ['hubot', `@${userName} I'll have a quick look for you...`],
       ])
     })
   })

@@ -1,19 +1,25 @@
 import { expect } from 'chai'
 import * as sinon from 'sinon'
 import { RobotWithClient } from '../hackbot'
+import { SlackBotClient } from 'hubot-slack'
+import { MemoryDataStore, User } from '@slack/client'
 import * as Helper from 'hubot-test-helper'
+import * as random from './random'
 
 describe('@hubot tell me about my team', () => {
 
   let helper: Helper.Helper
   let room: Helper.Room
   let robot: RobotWithClient
+  let dataStore: MemoryDataStore
 
   before(() => helper = new Helper('../index.js'))
 
   function setUp() {
     room = helper.createRoom()
     robot = <RobotWithClient> room.robot
+    dataStore = new MemoryDataStore()
+    robot.adapter.client = <SlackBotClient> { rtm: { dataStore: dataStore } }
   }
 
   function tearDown() {
@@ -25,22 +31,14 @@ describe('@hubot tell me about my team', () => {
     before(setUp)
     after(tearDown)
 
-    let userId: string
-    let teamName: string
-    let firstTeamMember: string
-    let secondTeamMember: string
-    let thirdTeamMember: string
-    let motto: string
+    const { id: userId, name: userName } = random.user()
+    const { name: secondTeamMember } = random.user()
+    const { name: thirdTeamMember } = random.user()
+    const { name: teamName } = random.team()
+    const motto = random.motto()
     let getUserStub: sinon.SinonStub
 
     before(() => {
-      userId = 'jerry'
-      teamName = 'Pointy Wizards'
-      firstTeamMember = 'Jerry'
-      secondTeamMember = 'Bob'
-      thirdTeamMember = 'Perry'
-      motto = 'Pikes and spikes hurt on bikes'
-
       getUserStub = sinon.stub(robot.client, 'getUser').returns(Promise.resolve({
         ok: true,
         user: {
@@ -50,7 +48,7 @@ describe('@hubot tell me about my team', () => {
             name: teamName,
             motto: motto,
             members: [{
-              name: firstTeamMember,
+              name: userName,
             }, {
               name: secondTeamMember,
             }, {
@@ -60,7 +58,11 @@ describe('@hubot tell me about my team', () => {
         },
       }))
 
-      return room.user.say(userId, `@hubot tell me about my team`)
+      sinon.stub(dataStore, 'getUserByName')
+        .withArgs(userName)
+        .returns({ id: userId } as User)
+
+      return room.user.say(userName, `@hubot tell me about my team`)
     })
 
     it('should fetch the user', () => {
@@ -69,9 +71,9 @@ describe('@hubot tell me about my team', () => {
 
     it('should tell the user the team information', () => {
       expect(room.messages).to.eql([
-        [userId, `@hubot tell me about my team`],
+        [userName, `@hubot tell me about my team`],
         ['hubot',
-          `@${userId} "${teamName}" has 3 members: ${firstTeamMember},` +
+          `@${userName} "${teamName}" has 3 members: ${userName},` +
           ` ${secondTeamMember}, ${thirdTeamMember}\r\nThey say: ${motto}`,
         ],
       ])
@@ -83,51 +85,45 @@ describe('@hubot tell me about my team', () => {
     before(setUp)
     after(tearDown)
 
-    let userId: string
-    let teamName: string
-    let firstTeamMember: string
-    let secondTeamMember: string
-    let thirdTeamMember: string
-    let getUserStub: sinon.SinonStub
+    const { id: userId, name: userName } = random.user()
+    const { name: secondTeamMember } = random.user()
+    const { name: thirdTeamMember } = random.user()
+    const { name: teamName } = random.team()
 
     before(() => {
-      userId = 'jerry'
-      teamName = 'Pointy Wizards'
-      firstTeamMember = 'Jerry'
-      secondTeamMember = 'Bob'
-      thirdTeamMember = 'Perry'
-
-      getUserStub = sinon.stub(robot.client, 'getUser').returns(Promise.resolve({
-        ok: true,
-        user: {
-          id: userId,
-          team: {
-            id: 'johnny-fives',
-            name: teamName,
-            motto: null,
-            members: [{
-              name: firstTeamMember,
-            }, {
-              name: secondTeamMember,
-            }, {
-              name: thirdTeamMember,
-            }],
+      sinon.stub(robot.client, 'getUser')
+        .withArgs(userId)
+        .returns(Promise.resolve({
+          ok: true,
+          user: {
+            id: userId,
+            team: {
+              id: 'johnny-fives',
+              name: teamName,
+              motto: null,
+              members: [{
+                name: userName,
+              }, {
+                name: secondTeamMember,
+              }, {
+                name: thirdTeamMember,
+              }],
+            },
           },
-        },
-      }))
+        }))
 
-      return room.user.say(userId, `@hubot tell me about my team`)
-    })
+      sinon.stub(dataStore, 'getUserByName')
+        .withArgs(userName)
+        .returns({ id: userId } as User)
 
-    it('should fetch the user', () => {
-      expect(getUserStub).to.have.been.calledWith(userId)
+      return room.user.say(userName, `@hubot tell me about my team`)
     })
 
     it('should tell the user the team information', () => {
       expect(room.messages).to.eql([
-        [userId, `@hubot tell me about my team`],
+        [userName, `@hubot tell me about my team`],
         ['hubot',
-          `@${userId} "${teamName}" has 3 members: ${firstTeamMember}, ${secondTeamMember}, ${thirdTeamMember}\r\n` +
+          `@${userName} "${teamName}" has 3 members: ${userName}, ${secondTeamMember}, ${thirdTeamMember}\r\n` +
           "They don't yet have a motto!",
         ],
       ])
@@ -139,31 +135,30 @@ describe('@hubot tell me about my team', () => {
     before(setUp)
     after(tearDown)
 
-    let userId: string
-    let getUserStub: sinon.SinonStub
+    const { id: userId, name: userName } = random.user()
 
     before(() => {
-      userId = 'jerry'
+      sinon.stub(robot.client, 'getUser')
+        .withArgs(userId)
+        .returns(Promise.resolve({
+          ok: true,
+          user: {
+            id: userId,
+            team: {},
+          },
+        }))
 
-      getUserStub = sinon.stub(robot.client, 'getUser').returns(Promise.resolve({
-        ok: true,
-        user: {
-          id: userId,
-          team: {},
-        },
-      }))
+      sinon.stub(dataStore, 'getUserByName')
+        .withArgs(userName)
+        .returns({ id: userId } as User)
 
-      return room.user.say(userId, `@hubot tell me about my team`)
-    })
-
-    it('should fetch the user', () => {
-      expect(getUserStub).to.have.been.calledWith(userId)
+      return room.user.say(userName, `@hubot tell me about my team`)
     })
 
     it('should tell the user that they are not in a team', () => {
       expect(room.messages).to.eql([
-        [userId, `@hubot tell me about my team`],
-        ['hubot', `@${userId} You're not in a team! :goberserk:`],
+        [userName, `@hubot tell me about my team`],
+        ['hubot', `@${userName} You're not in a team! :goberserk:`],
       ])
     })
   })
@@ -173,28 +168,27 @@ describe('@hubot tell me about my team', () => {
     before(setUp)
     after(tearDown)
 
-    let userId: string
-    let getUserStub: sinon.SinonStub
+    const { id: userId, name: userName } = random.user()
 
     before(() => {
-      userId = 'jerry'
+      sinon.stub(robot.client, 'getUser')
+        .withArgs(userId)
+        .returns(Promise.resolve({
+          ok: false,
+          statusCode: 404,
+        }))
 
-      getUserStub = sinon.stub(robot.client, 'getUser').returns(Promise.resolve({
-        ok: false,
-        statusCode: 404,
-      }))
+      sinon.stub(dataStore, 'getUserByName')
+        .withArgs(userName)
+        .returns({ id: userId } as User)
 
-      return room.user.say(userId, `@hubot tell me about my team`)
-    })
-
-    it('should fetch the user', () => {
-      expect(getUserStub).to.have.been.calledWith(userId)
+      return room.user.say(userName, `@hubot tell me about my team`)
     })
 
     it('should tell the user that they are not in a team', () => {
       expect(room.messages).to.eql([
-        [userId, `@hubot tell me about my team`],
-        ['hubot', `@${userId} You're not in a team! :goberserk:`],
+        [userName, `@hubot tell me about my team`],
+        ['hubot', `@${userName} You're not in a team! :goberserk:`],
       ])
     })
   })
@@ -204,21 +198,24 @@ describe('@hubot tell me about my team', () => {
     before(setUp)
     after(tearDown)
 
-    let userId: string
+    const { id: userId, name: userName } = random.user()
 
     before(() => {
-      userId = 'jerry'
-      const error = new Error('when getUser errors')
+      const error = new Error('[test] when getUser errors')
 
       sinon.stub(robot, 'emit')
-      sinon.stub(robot.client, 'getUser').returns(Promise.reject(error))
+      sinon.stub(robot.client, 'getUser').withArgs(userId).returns(Promise.reject(error))
 
-      return room.user.say(userId, `@hubot tell me about my team`)
+      sinon.stub(dataStore, 'getUserByName')
+        .withArgs(userName)
+        .returns({ id: userId } as User)
+
+      return room.user.say(userName, `@hubot tell me about my team`)
     })
 
     it('should not respond', () => {
       expect(room.messages).to.eql([
-        [userId, `@hubot tell me about my team`],
+        [userName, `@hubot tell me about my team`],
       ])
     })
   })

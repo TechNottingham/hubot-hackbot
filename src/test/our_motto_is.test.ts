@@ -4,6 +4,7 @@ import { RobotWithClient } from '../hackbot'
 import { SlackBotClient } from 'hubot-slack'
 import { MemoryDataStore, User } from '@slack/client'
 import * as Helper from 'hubot-test-helper'
+import * as random from './random'
 
 describe('@hubot our motto is', () => {
 
@@ -30,47 +31,37 @@ describe('@hubot our motto is', () => {
     before(setUp)
     after(tearDown)
 
-    let userName: string
-    let userEmail: string
-    let teamId: string
-    let teamName: string
-    let motto: string
+    const { id: userId, name: userName } = random.user()
+    const { id: teamId, name: teamName } = random.team()
+    const motto = random.motto()
     let getUserStub: sinon.SinonStub
     let updateMottoStub: sinon.SinonStub
 
     before(() => {
-      userName = 'jerry'
-      userEmail = 'jerry@jerry.jerry'
-      teamId = 'my-crazy-team-name'
-      teamName = 'My Crazy Team Name'
-      motto = 'We are great'
-
-      getUserStub = sinon.stub(robot.client, 'getUser').returns(Promise.resolve({
-        ok: true,
-        user: {
-          id: userName,
-          team: {
-            id: teamId,
-            name: teamName,
+      getUserStub = sinon.stub(robot.client, 'getUser')
+        .withArgs(userId)
+        .returns(Promise.resolve({
+          ok: true,
+          user: {
+            id: userId,
+            team: {
+              id: teamId,
+              name: teamName,
+            },
           },
-        },
-      }))
+        }))
 
       updateMottoStub = sinon.stub(robot.client, 'updateMotto').returns(Promise.resolve({ ok: true }))
 
-      sinon.stub(dataStore, 'getUserById')
+      sinon.stub(dataStore, 'getUserByName')
         .withArgs(userName)
-        .returns({ id: userName, profile: { email: userEmail } } as User)
+        .returns({ id: userId } as User)
 
       return room.user.say(userName, `@hubot our motto is ${motto}`)
     })
 
-    it('should fetch the user', () => {
-      expect(getUserStub).to.have.been.calledWith(userName)
-    })
-
     it('should update the team motto', () => {
-      expect(updateMottoStub).to.have.been.calledWith(motto, teamId, userEmail)
+      expect(updateMottoStub).to.have.been.calledWith(motto, teamId, userId)
     })
 
     it('should tell the user the new motto', () => {
@@ -86,31 +77,29 @@ describe('@hubot our motto is', () => {
     before(setUp)
     after(tearDown)
 
-    let userName: string
-    let motto: string
-    let getUserStub: sinon.SinonStub
-    let updateMottoStub: sinon.SinonStub
+    const { id: userId, name: userName } = random.user()
+    const { id: teamId } = random.team()
+    const motto = random.motto()
 
     before(() => {
-      userName = 'jerry'
-      motto = 'We are great'
-
-      getUserStub = sinon.stub(robot.client, 'getUser').returns(Promise.resolve({
+      sinon.stub(robot.client, 'getUser').returns(Promise.resolve({
         ok: true,
         user: {
-          id: userName,
-          team: { id: 'my-crazy-team-name' },
+          id: userId,
+          team: { id: teamId },
         },
       }))
 
-      updateMottoStub = sinon.stub(robot.client, 'updateMotto').returns(Promise.resolve({
-        ok: false,
-        statusCode: 403,
-      }))
+      sinon.stub(robot.client, 'updateMotto')
+        .withArgs(motto, teamId, userId)
+        .returns(Promise.resolve({
+          ok: false,
+          statusCode: 403,
+        }))
 
-      sinon.stub(dataStore, 'getUserById')
+      sinon.stub(dataStore, 'getUserByName')
         .withArgs(userName)
-        .returns({ id: userName, profile: { email: 'jerry@jerry.jerry' } } as User)
+        .returns({ id: userId } as User)
 
       return room.user.say(userName, `@hubot our motto is ${motto}`)
     })
@@ -128,30 +117,30 @@ describe('@hubot our motto is', () => {
     before(setUp)
     after(tearDown)
 
-    let userName: string
-    let getUserStub: sinon.SinonStub
+    const { id: userId, name: userName } = random.user()
+    const motto = random.motto()
 
     before(() => {
-      userName = 'jerry'
+      sinon.stub(robot.client, 'getUser')
+        .withArgs(userId)
+        .returns(Promise.resolve({
+          ok: true,
+          user: {
+            id: userId,
+            team: {},
+          },
+        }))
 
-      getUserStub = sinon.stub(robot.client, 'getUser').returns(Promise.resolve({
-        ok: true,
-        user: {
-          id: userName,
-          team: {},
-        },
-      }))
-
-      sinon.stub(dataStore, 'getUserById')
+      sinon.stub(dataStore, 'getUserByName')
         .withArgs(userName)
-        .returns({ id: userName, profile: { email: 'jerry@jerry.jerry' } } as User)
+        .returns({ id: userId } as User)
 
-      return room.user.say(userName, '@hubot our motto is We are great')
+      return room.user.say(userName, `@hubot our motto is ${motto}`)
     })
 
     it('should tell the user the motto is changed', () => {
       expect(room.messages).to.eql([
-        [userName, '@hubot our motto is We are great'],
+        [userName, `@hubot our motto is ${motto}`],
         ['hubot', `@${userName} You're not in a team! :goberserk:`],
       ])
     })
@@ -162,27 +151,27 @@ describe('@hubot our motto is', () => {
     before(setUp)
     after(tearDown)
 
-    let userName: string
-    let getUserStub: sinon.SinonStub
+    const { id: userId, name: userName } = random.user()
+    const motto = random.motto()
 
     before(() => {
-      userName = 'jerry'
+      sinon.stub(robot.client, 'getUser')
+        .withArgs(userId)
+        .returns(Promise.resolve({
+          ok: false,
+          statusCode: 404,
+        }))
 
-      getUserStub = sinon.stub(robot.client, 'getUser').returns(Promise.resolve({
-        ok: false,
-        statusCode: 404,
-      }))
-
-      sinon.stub(dataStore, 'getUserById')
+      sinon.stub(dataStore, 'getUserByName')
         .withArgs(userName)
-        .returns({ id: userName, profile: { email: 'jerry@jerry.jerry' } } as User)
+        .returns({ id: userId } as User)
 
-      return room.user.say(userName, '@hubot our motto is We are great')
+      return room.user.say(userName, `@hubot our motto is ${motto}`)
     })
 
     it('should tell the user the motto is changed', () => {
       expect(room.messages).to.eql([
-        [userName, '@hubot our motto is We are great'],
+        [userName, `@hubot our motto is ${motto}`],
         ['hubot', `@${userName} You're not in a team! :goberserk:`],
       ])
     })

@@ -4,6 +4,7 @@ import { RobotWithClient } from '../hackbot'
 import { SlackBotClient } from 'hubot-slack'
 import { MemoryDataStore, User } from '@slack/client'
 import * as Helper from 'hubot-test-helper'
+import * as random from './random'
 
 describe('@hubot add @username to my team', () => {
 
@@ -30,26 +31,16 @@ describe('@hubot add @username to my team', () => {
     before(setUp)
     after(tearDown)
 
-    let userName: string
-    let userEmail: string
-    let otherUserId: string
-    let otherUserUsername: string
-    let existingTeamId: string
-    let existingTeamName: string
+    const { id: userId, name: userName } = random.user()
+    const { id: otherUserId, name: otherUserUsername } = random.otheruser()
+    const { id: existingTeamId, name: existingTeamName } = random.team()
     let getUserStub: sinon.SinonStub
     let addUserToTeamStub: sinon.SinonStub
 
     before(() => {
-      userName = 'micah'
-      userEmail = 'micah.micah~micah'
-      otherUserId = 'polly'
-      otherUserUsername = 'abcdefghijklmnopqrstuvwxyz.-_0123456789'
-      existingTeamId = 'ocean-mongrels'
-      existingTeamName = 'Ocean Mongrels'
-
       getUserStub = sinon.stub(robot.client, 'getUser')
       getUserStub
-        .withArgs(userName)
+        .withArgs(userId)
         .returns(Promise.resolve({
           ok: true,
           user: {
@@ -59,8 +50,6 @@ describe('@hubot add @username to my team', () => {
             },
           },
         }))
-
-      getUserStub
         .withArgs(otherUserId)
         .returns(Promise.resolve({
           ok: true,
@@ -69,26 +58,25 @@ describe('@hubot add @username to my team', () => {
 
       addUserToTeamStub = sinon.stub(robot.client, 'addUserToTeam').returns(Promise.resolve({ ok: true }))
 
-      sinon.stub(dataStore, 'getUserById')
-        .withArgs(userName)
-        .returns({ id: userName, profile: { email: userEmail } } as User)
       sinon.stub(dataStore, 'getUserByName')
+        .withArgs(userName)
+        .returns({ id: userId } as User)
         .withArgs(otherUserUsername)
         .returns({ id: otherUserId, name: otherUserUsername } as User)
 
       return room.user.say(userName, `@hubot add @${otherUserUsername}   to my team`)
     })
 
-    it('should get the current user', () => {
-      expect(getUserStub).to.have.been.calledWith(userName)
+    it('should get the current user from the API', () => {
+      expect(getUserStub).to.have.been.calledWith(userId)
     })
 
-    it('should get the other user', () => {
+    it('should get the other user from the API', () => {
       expect(getUserStub).to.have.been.calledWith(otherUserId)
     })
 
     it('should add the other user to the team', () => {
-      expect(addUserToTeamStub).to.have.been.calledWith(existingTeamId, otherUserId, userEmail)
+      expect(addUserToTeamStub).to.have.been.calledWith(existingTeamId, otherUserId, userId)
     })
 
     it('should tell the user that the command has completed', () => {
@@ -104,36 +92,30 @@ describe('@hubot add @username to my team', () => {
     before(setUp)
     after(tearDown)
 
-    let userName: string
-    let otherUserUsername: string
+    const { id: userId, name: userName } = random.user()
+    const { id: otherUserId, name: otherUserUsername } = random.otheruser()
+    const { id: existingTeamId, name: existingTeamName } = random.team()
 
     before(() => {
-      userName = 'micah'
-      const userEmail = 'micah.micah~micah'
-      const otherUserId = 'polly'
-      otherUserUsername = 'pollygrafanaasa'
-      const existingTeamId = 'ocean-mongrels'
-      const existingTeamName = 'Ocean Mongrels'
-
-      sinon.stub(robot.client, 'getUser').returns(Promise.resolve({
-        ok: true,
-        user: {
+      sinon.stub(robot.client, 'getUser')
+        .returns(Promise.resolve({
+          ok: true,
+          user: {
           team: {
             id: existingTeamId,
             name: existingTeamName,
           },
         },
-      }))
+        }))
 
       sinon.stub(robot.client, 'addUserToTeam').returns(Promise.resolve({
         ok: false,
         statusCode: 403,
       }))
 
-      sinon.stub(dataStore, 'getUserById')
-        .withArgs(userName)
-        .returns({ id: userName, profile: { email: userEmail } } as User)
       sinon.stub(dataStore, 'getUserByName')
+        .withArgs(userName)
+        .returns({ id: userId } as User)
         .withArgs(otherUserUsername)
         .returns({ id: otherUserId, name: otherUserUsername } as User)
 
@@ -153,21 +135,22 @@ describe('@hubot add @username to my team', () => {
     before(setUp)
     after(tearDown)
 
-    let userName: string
-    let otherUserUsername: string
+    const { id: userId, name: userName } = random.user()
+    const { name: otherUserUsername } = random.otheruser()
 
     before(() => {
-      userName = 'micah'
-      otherUserUsername = 'pollygrafanaasa'
+      sinon.stub(robot.client, 'getUser')
+        .withArgs(userId)
+        .returns(Promise.resolve({
+          ok: true,
+          user: {
+            team: {},
+          },
+        }))
 
-      sinon.stub(robot.client, 'getUser').returns(Promise.resolve({
-        ok: true,
-        user: {
-          team: {},
-        },
-      }))
-
-      sinon.stub(dataStore, 'getUserById').withArgs(userName).returns({ id: userName } as User)
+      sinon.stub(dataStore, 'getUserByName')
+        .withArgs(userName)
+        .returns({ id: userId } as User)
 
       return room.user.say(userName, `@hubot add @${otherUserUsername} to my team`)
     })
@@ -185,67 +168,49 @@ describe('@hubot add @username to my team', () => {
     before(setUp)
     after(tearDown)
 
-    let userName: string
-    let userEmail: string
-    let otherUserId: string
-    let otherUserUsername: string
-    let existingTeamId: string
-    let existingTeamName: string
-    let getUserStub: sinon.SinonStub
+
+    const { id: userId, name: userName } = random.user()
+    const { id: otherUserId, name: otherUserUsername } = random.otheruser()
+    const { id: existingTeamId, name: existingTeamName } = random.team()
     let createUserStub: sinon.SinonStub
     let addUserToTeamStub: sinon.SinonStub
 
     before(() => {
-      userName = 'micah'
-      userEmail = 'micah.micah~micah'
-      otherUserId = 'polly'
-      otherUserUsername = 'pollygrafanaasa'
-      existingTeamId = 'ocean-mongrels'
-      existingTeamName = 'Ocean Mongrels'
-
-      getUserStub = sinon.stub(robot.client, 'getUser')
-      getUserStub.withArgs(userName).returns(Promise.resolve({
-        ok: true,
-        user: {
-          team: {
-            id: existingTeamId,
-            name: existingTeamName,
+      sinon.stub(robot.client, 'getUser')
+        .withArgs(userId)
+        .returns(Promise.resolve({
+          ok: true,
+          user: {
+            team: {
+              id: existingTeamId,
+              name: existingTeamName,
+            },
           },
-        },
-      }))
-
-      getUserStub.withArgs(otherUserId).returns(Promise.resolve({
-        ok: false,
-        statusCode: 404,
-      }))
+        }))
+        .withArgs(otherUserId)
+        .returns(Promise.resolve({
+          ok: false,
+          statusCode: 404,
+        }))
 
       createUserStub = sinon.stub(robot.client, 'createUser').returns(Promise.resolve({ ok: true }))
       addUserToTeamStub = sinon.stub(robot.client, 'addUserToTeam').returns(Promise.resolve({ ok: true }))
 
-      sinon.stub(dataStore, 'getUserById')
-        .withArgs(userName)
-        .returns({ id: userName, profile: { email: userEmail } } as User)
       sinon.stub(dataStore, 'getUserByName')
+        .withArgs(userName)
+        .returns({ id: userId } as User)
         .withArgs(otherUserUsername)
         .returns({ id: otherUserId, name: otherUserUsername } as User)
 
       return room.user.say(userName, `@hubot add @${otherUserUsername} to my team`)
     })
 
-    it('should get the current user', () => {
-      expect(getUserStub).to.have.been.calledWith(userName)
-    })
-
-    it('should get the other user', () => {
-      expect(getUserStub).to.have.been.calledWith(otherUserId)
-    })
-
     it('should create the other user', () => {
-      expect(createUserStub).to.have.been.calledWith(otherUserId, otherUserUsername, userEmail)
+      expect(createUserStub).to.have.been.calledWith(otherUserId, otherUserUsername, userId)
     })
 
     it('should add the other user to the team', () => {
-      expect(addUserToTeamStub).to.have.been.calledWith(existingTeamId, otherUserId, userEmail)
+      expect(addUserToTeamStub).to.have.been.calledWith(existingTeamId, otherUserId, userId)
     })
 
     it('should tell the user that the command has completed', () => {
@@ -261,42 +226,35 @@ describe('@hubot add @username to my team', () => {
     before(setUp)
     after(tearDown)
 
-    let userName: string
-    let otherUserUsername: string
+
+    const { id: userId, name: userName } = random.user()
+    const { id: otherUserId, name: otherUserUsername } = random.otheruser()
+    const { id: existingTeamId, name: existingTeamName } = random.team()
 
     before(() => {
-      userName = 'micah'
-      const userEmail = 'micah.micah~micah'
-      const otherUserId = 'polly'
-      otherUserUsername = 'pollygrafanaasa'
-      const existingTeamId = 'ocean-mongrels'
-      const existingTeamName = 'Ocean Mongrels'
-
-      const getUserStub = sinon.stub(robot.client, 'getUser')
-      getUserStub.withArgs(userName).returns(Promise.resolve({
-        ok: true,
-        user: {
-          team: {
-            id: existingTeamId,
-            name: existingTeamName,
+      sinon.stub(robot.client, 'getUser')
+        .withArgs(userId).returns(Promise.resolve({
+          ok: true,
+          user: {
+            team: {
+              id: existingTeamId,
+              name: existingTeamName,
+            },
           },
-        },
-      }))
-
-      getUserStub.withArgs(otherUserId).returns(Promise.resolve({
-        ok: true,
-        statusCode: 200,
-      }))
+        }))
+        .withArgs(otherUserId).returns(Promise.resolve({
+          ok: true,
+          statusCode: 200,
+        }))
 
       sinon.stub(robot.client, 'addUserToTeam').returns(Promise.resolve({
         ok: false,
         statusCode: 400,
       }))
 
-      sinon.stub(dataStore, 'getUserById')
-        .withArgs(userName)
-        .returns({ id: userName, profile: { email: userEmail } } as User)
       sinon.stub(dataStore, 'getUserByName')
+        .withArgs(userName)
+        .returns({ id: userId } as User)
         .withArgs(otherUserUsername)
         .returns({ id: otherUserId, name: otherUserUsername } as User)
 

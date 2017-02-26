@@ -7,9 +7,9 @@ async function addUserToTeam(
   teamId: string,
   otherUserId: string,
   otherUsername: string,
-  emailAddress: string,
+  userId: string,
 ) {
-  const res = await robot.client.addUserToTeam(teamId, otherUserId, emailAddress)
+  const res = await robot.client.addUserToTeam(teamId, otherUserId, userId)
   if (res.statusCode === 400) {
     return response.reply(`Sorry, ${otherUsername} is already in another team and must leave that team first.`)
   }
@@ -26,26 +26,25 @@ export default (robot: AugmentedRobot) => {
   robot.respondAsync(/add @([a-z0-9.\-_]+)\s+to my team/, async (response) => {
     const otherUsername = response.match[1]
     const dataStore = robot.adapter.client.rtm.dataStore
-    const user = dataStore.getUserById(response.message.user.id)
+    const user = dataStore.getUserByName(response.message.user.name)
 
     const userResponse = await robot.client.getUser(user.id)
+    const teamId = userResponse.user.team.id
 
-    if (userResponse.user.team.id === undefined) {
+    if (teamId === undefined) {
       return response.reply(`I would, but you're not in a team...`)
     }
 
-    const teamId = userResponse.user.team.id
     const otherUser = dataStore.getUserByName(otherUsername)
-    const emailAddress = user.profile.email
 
-    const _userResponse = await robot.client.getUser(otherUser.id)
-    if (_userResponse.ok) {
-      return addUserToTeam(robot, response, teamId, otherUser.id, otherUsername, emailAddress)
+    const otherUserResponse = await robot.client.getUser(otherUser.id)
+    if (otherUserResponse.ok) {
+      return addUserToTeam(robot, response, teamId, otherUser.id, otherUsername, user.id)
     }
 
-    if (_userResponse.statusCode === 404) {
-      await robot.client.createUser(otherUser.id, otherUser.name, emailAddress)
-      await addUserToTeam(robot, response, teamId, otherUser.id, otherUsername, emailAddress)
+    if (otherUserResponse.statusCode === 404) {
+      await robot.client.createUser(otherUser.id, otherUser.name, user.id)
+      await addUserToTeam(robot, response, teamId, otherUser.id, otherUsername, user.id)
     }
   })
 
