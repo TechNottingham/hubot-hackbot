@@ -168,7 +168,6 @@ describe('@hubot add @username to my team', () => {
     before(setUp)
     after(tearDown)
 
-
     const { id: userId, name: userName } = random.user()
     const { id: otherUserId, name: otherUserUsername } = random.otheruser()
     const { id: existingTeamId, name: existingTeamName } = random.team()
@@ -225,7 +224,6 @@ describe('@hubot add @username to my team', () => {
 
     before(setUp)
     after(tearDown)
-
 
     const { id: userId, name: userName } = random.user()
     const { id: otherUserId, name: otherUserUsername } = random.otheruser()
