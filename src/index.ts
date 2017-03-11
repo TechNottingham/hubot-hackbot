@@ -31,6 +31,7 @@ import AddUsernameToMyTeamScript from './scripts/add_username_to_my_team.script'
 import CanYouSeeTheApiScript from './scripts/can_you_see_the_api.script'
 import CreateTeamScript from './scripts/create_team.script'
 import FindTeamsLikeScript from './scripts/find_teams_like.script'
+import KickUsernameFromTeamScript from './scripts/kick_username_from_team.script'
 import LeaveMyTeamScript from './scripts/leave_my_team.script'
 import MyIdScript from './scripts/my_id.script'
 import OurMottoIsScript from './scripts/our_motto_is.script'
@@ -56,6 +57,7 @@ function load(robot: RobotWithClient) {
   CanYouSeeTheApiScript(augmentedRobot)
   CreateTeamScript(augmentedRobot)
   FindTeamsLikeScript(augmentedRobot)
+  KickUsernameFromTeamScript(augmentedRobot)
   LeaveMyTeamScript(augmentedRobot)
   MyIdScript(robot)
   OurMottoIsScript(augmentedRobot)
