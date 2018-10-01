@@ -23,7 +23,7 @@ async function addUserToTeam(
 
 export default (robot: AugmentedRobot) => {
 
-  robot.respondAsync(/add @([a-z0-9.\-_]+)\s+to my team/, async (response) => {
+  robot.respondAsync(/add @([a-z0-9.\-_]+)\s+to (me|my) team/, async (response) => {
     const otherUsername = response.match[1]
     const dataStore = robot.adapter.client.rtm.dataStore
     const user = dataStore.getUserByName(response.message.user.name)

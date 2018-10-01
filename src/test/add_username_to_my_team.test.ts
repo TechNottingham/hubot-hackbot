@@ -316,4 +316,65 @@ describe('@hubot add @username to my team', () => {
     })
   })
 
+  describe('Yorkshire folk', () => {
+
+    before(setUp)
+    after(tearDown)
+
+    const { id: userId, name: userName } = random.user()
+    const { id: otherUserId, name: otherUserUsername } = random.otheruser()
+    const { id: existingTeamId, name: existingTeamName } = random.team()
+    let getUserStub: sinon.SinonStub
+    let addUserToTeamStub: sinon.SinonStub
+
+    before(() => {
+      getUserStub = sinon.stub(robot.client, 'getUser')
+      getUserStub
+        .withArgs(userId)
+        .returns(Promise.resolve({
+          ok: true,
+          user: {
+            team: {
+              id: existingTeamId,
+              name: existingTeamName,
+            },
+          },
+        }))
+        .withArgs(otherUserId)
+        .returns(Promise.resolve({
+          ok: true,
+          statusCode: 200,
+        }))
+
+      addUserToTeamStub = sinon.stub(robot.client, 'addUserToTeam').returns(Promise.resolve({ ok: true }))
+
+      sinon.stub(dataStore, 'getUserByName')
+        .withArgs(userName)
+        .returns({ id: userId } as User)
+        .withArgs(otherUserUsername)
+        .returns({ id: otherUserId, name: otherUserUsername } as User)
+
+      return room.user.say(userName, `@hubot add @${otherUserUsername}   to me team`)
+    })
+
+    it('should get the current user from the API', () => {
+      expect(getUserStub).to.have.been.calledWith(userId)
+    })
+
+    it('should get the other user from the API', () => {
+      expect(getUserStub).to.have.been.calledWith(otherUserId)
+    })
+
+    it('should add the other user to the team', () => {
+      expect(addUserToTeamStub).to.have.been.calledWith(existingTeamId, otherUserId, userId)
+    })
+
+    it('should tell the user that the command has completed', () => {
+      expect(room.messages).to.eql([
+        [userName, `@hubot add @${otherUserUsername}   to me team`],
+        ['hubot', `@${userName} Done!`],
+      ])
+    })
+  })
+
 })
