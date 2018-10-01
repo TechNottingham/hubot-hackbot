@@ -2,7 +2,7 @@ import { AugmentedRobot } from '../augmented_robot'
 
 export default (robot: AugmentedRobot) => {
 
-  robot.respondAsync(/kick @([a-z0-9.\-_]+)\s+from my team/, async (response) => {
+  robot.respondAsync(/kick @([a-z0-9.\-_]+)\s+from (me|my) team/, async (response) => {
     const otherUsername = response.match[1]
     const dataStore = robot.adapter.client.rtm.dataStore
 

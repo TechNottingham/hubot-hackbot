@@ -176,4 +176,50 @@ describe('@hubot our motto is', () => {
       ])
     })
   })
+
+  describe('Yorkshire folkd', () => {
+
+    before(setUp)
+    after(tearDown)
+
+    const { id: userId, name: userName } = random.user()
+    const { id: teamId, name: teamName } = random.team()
+    const motto = random.motto()
+    let getUserStub: sinon.SinonStub
+    let updateMottoStub: sinon.SinonStub
+
+    before(() => {
+      getUserStub = sinon.stub(robot.client, 'getUser')
+        .withArgs(userId)
+        .returns(Promise.resolve({
+          ok: true,
+          user: {
+            id: userId,
+            team: {
+              id: teamId,
+              name: teamName,
+            },
+          },
+        }))
+
+      updateMottoStub = sinon.stub(robot.client, 'updateMotto').returns(Promise.resolve({ ok: true }))
+
+      sinon.stub(dataStore, 'getUserByName')
+        .withArgs(userName)
+        .returns({ id: userId } as User)
+
+      return room.user.say(userName, `@hubot us motto is ${motto}`)
+    })
+
+    it('should update the team motto', () => {
+      expect(updateMottoStub).to.have.been.calledWith(motto, teamId, userId)
+    })
+
+    it('should tell the user the new motto', () => {
+      expect(room.messages).to.eql([
+        [userName, `@hubot us motto is ${motto}`],
+        ['hubot', `@${userName} So it is! As ${teamName} say: ${motto}`],
+      ])
+    })
+  })
 })

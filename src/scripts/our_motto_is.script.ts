@@ -2,9 +2,9 @@ import { AugmentedRobot } from '../augmented_robot'
 
 export default (robot: AugmentedRobot) => {
 
-  robot.respondAsync(/our motto is (.*)/i, async (response) => {
+  robot.respondAsync(/(us|our) motto is (.*)/i, async (response) => {
     const user = robot.adapter.client.rtm.dataStore.getUserByName(response.message.user.name)
-    const motto = response.match[1]
+    const motto = response.match[2]
 
     const getUserResponse = await robot.client.getUser(user.id)
 

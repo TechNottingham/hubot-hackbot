@@ -219,4 +219,58 @@ describe('@hubot tell me about my team', () => {
       ])
     })
   })
+
+  describe('Yorkshire folk', () => {
+
+    before(setUp)
+    after(tearDown)
+
+    const { id: userId, name: userName } = random.user()
+    const { name: secondTeamMember } = random.user()
+    const { name: thirdTeamMember } = random.user()
+    const { name: teamName } = random.team()
+    const motto = random.motto()
+    let getUserStub: sinon.SinonStub
+
+    before(() => {
+      getUserStub = sinon.stub(robot.client, 'getUser').returns(Promise.resolve({
+        ok: true,
+        user: {
+          id: userId,
+          team: {
+            id: 'some team id',
+            name: teamName,
+            motto: motto,
+            members: [{
+              name: userName,
+            }, {
+              name: secondTeamMember,
+            }, {
+              name: thirdTeamMember,
+            }],
+          },
+        },
+      }))
+
+      sinon.stub(dataStore, 'getUserByName')
+        .withArgs(userName)
+        .returns({ id: userId } as User)
+
+      return room.user.say(userName, `@hubot tell me about me team`)
+    })
+
+    it('should fetch the user', () => {
+      expect(getUserStub).to.have.been.calledWith(userId)
+    })
+
+    it('should tell the user the team information', () => {
+      expect(room.messages).to.eql([
+        [userName, `@hubot tell me about me team`],
+        ['hubot',
+          `@${userName} "${teamName}" has 3 members: ${userName},` +
+          ` ${secondTeamMember}, ${thirdTeamMember}\r\nThey say: ${motto}`,
+        ],
+      ])
+    })
+  })
 })
