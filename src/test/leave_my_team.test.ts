@@ -292,4 +292,53 @@ describe('@hubot leave my team', () => {
       ])
     })
   })
+
+  describe('Yorkshire folk', () => {
+
+    before(setUp)
+    after(tearDown)
+
+    const { id: userId, name: userName } = random.user()
+    const { id: existingTeamId, name: existingTeamName } = random.team()
+    let removeTeamMemberStub: sinon.SinonStub
+    let removeTeamStub: sinon.SinonStub
+
+    before(() => {
+      sinon.stub(robot.client, 'getUser')
+        .withArgs(userId)
+        .returns(Promise.resolve({
+          ok: true,
+          user: {
+            team: {
+              id: existingTeamId,
+              name: existingTeamName,
+            },
+          },
+        }))
+
+      removeTeamMemberStub = sinon.stub(robot.client, 'removeTeamMember').returns(Promise.resolve({ ok: true }))
+      removeTeamStub = sinon.stub(robot.client, 'removeTeam').returns(Promise.resolve({ ok: false }))
+
+      sinon.stub(dataStore, 'getUserByName')
+        .withArgs(userName)
+        .returns({ id: userId } as User)
+
+      return room.user.say(userName, '@hubot leave me team')
+    })
+
+    it('should remove the user from the team', () => {
+      expect(removeTeamMemberStub).to.have.been.calledWith(existingTeamId, userId, userId)
+    })
+
+    it('should attempt to remove the team', () => {
+      expect(removeTeamStub).to.have.been.calledWith(existingTeamId, userId)
+    })
+
+    it('should tell the user that they have left the team', () => {
+      expect(room.messages).to.eql([
+        [userName, '@hubot leave me team'],
+        ['hubot', `@${userName} OK, you've been removed from team "${existingTeamName}"`],
+      ])
+    })
+  })
 })
