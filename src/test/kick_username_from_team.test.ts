@@ -250,4 +250,50 @@ describe('@hubot kick @username from my team', () => {
     })
   })
 
+  describe('Yorkshire folkd', () => {
+
+    before(setUp)
+    after(tearDown)
+
+    const { id: userId, name: userName } = random.user()
+    const { id: otherUserId, name: otherUsername } = random.otheruser()
+    const { id: teamId, name: teamName } = random.team()
+    let removeTeamMemberStub: sinon.SinonStub
+
+    before(() => {
+      sinon.stub(robot.client, 'getUser')
+        .withArgs(userId)
+        .returns(Promise.resolve({
+          ok: true,
+          user: {
+            team: {
+              id: teamId,
+              name: teamName,
+            },
+          },
+        }))
+
+      removeTeamMemberStub = sinon.stub(robot.client, 'removeTeamMember').returns(Promise.resolve({ ok: true }))
+
+      sinon.stub(dataStore, 'getUserByName')
+        .withArgs(otherUsername)
+        .returns({ id: otherUserId } as User)
+        .withArgs(userName)
+        .returns({ id: userId } as User)
+
+      return room.user.say(userName, `@hubot kick @${otherUsername} from me team`)
+    })
+
+    it('should remove the user from the team', () => {
+      expect(removeTeamMemberStub).to.have.been.calledWith(teamId, otherUserId, userId)
+    })
+
+    it('should tell the user that the command has completed', () => {
+      expect(room.messages).to.eql([
+        [userName, `@hubot kick @${otherUsername} from me team`],
+        ['hubot', `@${userName} Done!`],
+      ])
+    })
+  })
+
 })
